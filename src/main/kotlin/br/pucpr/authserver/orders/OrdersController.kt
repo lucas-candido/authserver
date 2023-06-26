@@ -1,3 +1,7 @@
+package br.pucpr.authserver.orders
+
+import br.pucpr.authserver.services.Service
+import br.pucpr.authserver.services.ServicesRepository
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -5,7 +9,10 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/orders")
-class OrderController(private val orderRepository: OrdersRepository, private val productsRepository: ProductsRepository) {
+class OrdersController(
+    private val orderRepository: OrdersRepository,
+    private val servicesRepository: ServicesRepository
+) {
 
     @GetMapping("/")
     fun getAllOrders(): List<Order> {
@@ -30,8 +37,8 @@ class OrderController(private val orderRepository: OrdersRepository, private val
 
     @PutMapping("/{id}")
     fun updateOrder(
-            @PathVariable id: Long,
-            @Valid @RequestBody updatedOrder: Order
+        @PathVariable id: Long,
+        @Valid @RequestBody updatedOrder: Order
     ): ResponseEntity<Order> {
         val order = orderRepository.findById(id)
         return if (order.isPresent) {
@@ -52,22 +59,22 @@ class OrderController(private val orderRepository: OrdersRepository, private val
         }
     }
 
-    @GetMapping("/{id}/products")
-    fun getOrderProducts(@PathVariable id: Long): Set<Product> {
+    @GetMapping("/{id}/services")
+    fun getOrderServices(@PathVariable id: Long): Set<Service> {
         val order = orderRepository.findById(id)
         return if (order.isPresent) {
-            order.get().products
+            order.get().services
         } else {
             emptySet()
         }
     }
 
-    @PostMapping("/{id}/products/{productId}")
-    fun addProductToOrder(@PathVariable id: Long, @PathVariable productId: Long): ResponseEntity<Order> {
+    @PostMapping("/{id}/services/{serviceId}")
+    fun addServiceToOrder(@PathVariable id: Long, @PathVariable serviceId: Long): ResponseEntity<Order> {
         val order = orderRepository.findById(id)
-        val product = productsRepository.findById(productId)
-        return if (order.isPresent && product.isPresent) {
-            order.get().products.add(product.get())
+        val service = servicesRepository.findById(serviceId)
+        return if (order.isPresent && service.isPresent) {
+            order.get().services.add(service.get())
             val updatedOrder = orderRepository.save(order.get())
             ResponseEntity.ok(updatedOrder)
         } else {
@@ -75,12 +82,12 @@ class OrderController(private val orderRepository: OrdersRepository, private val
         }
     }
 
-    @DeleteMapping("/{id}/products/{productId}")
-    fun removeProductFromOrder(@PathVariable id: Long, @PathVariable productId: Long): ResponseEntity<Order> {
+    @DeleteMapping("/{id}/services/{serviceId}")
+    fun removeServiceFromOrder(@PathVariable id: Long, @PathVariable serviceId: Long): ResponseEntity<Order> {
         val order = orderRepository.findById(id)
-        val product = productsRepository.findById(productId)
-        return if (order.isPresent && product.isPresent) {
-            order.get().products.remove(product.get())
+        val service = servicesRepository.findById(serviceId)
+        return if (order.isPresent && service.isPresent) {
+            order.get().services.remove(service.get())
             val updatedOrder = orderRepository.save(order.get())
             ResponseEntity.ok(updatedOrder)
         } else {
