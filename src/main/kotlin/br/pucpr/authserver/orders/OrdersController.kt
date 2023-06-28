@@ -42,10 +42,9 @@ class OrdersController(
     )
     fun getAllOrders(@RequestParam("userId") userId: Long?, @RequestParam("order") order: String?): List<Order> {
 
-        var orders = orderRepository.findAll()
-        orders = if (order.equals("DESC")) orders.sortedByDescending { it.id } else orders.sortedBy { it.id }
+        val orders = if (userId != null) orderRepository.findAllByUserId(userId) else orderRepository.findAll()
+        return  if (order.equals("DESC")) orders.sortedByDescending { it.id } else orders.sortedBy { it.id }
 
-        return if (userId != null) orders.filter {  it.user.id == userId } else orders
     }
 
     @GetMapping("/{id}")
