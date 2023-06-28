@@ -33,7 +33,7 @@ class ServicesController(private val servicesRepository: ServicesRepository) {
 
     @PostMapping("/")
     @SecurityRequirement(name = "AuthServer")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CADASTRO')")
     @Operation(summary = "Cria um serviço", description = "Retorna o serviço criado")
     fun createService(@Valid @RequestBody service: Service): ResponseEntity<Service> {
         val createdService = servicesRepository.save(service)
@@ -42,7 +42,7 @@ class ServicesController(private val servicesRepository: ServicesRepository) {
 
     @PutMapping("/{id}")
     @SecurityRequirement(name = "AuthServer")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CADASTRO')")
     @Operation(summary = "Atualiza um serviço", description = "Retorna o serviço atualizado")
     fun updateService(
         @PathVariable id: Long,
@@ -59,7 +59,7 @@ class ServicesController(private val servicesRepository: ServicesRepository) {
 
     @DeleteMapping("/{id}")
     @SecurityRequirement(name = "AuthServer")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CADASTRO')")
     @Operation(summary = "Deleta um serviço", description = "Retorna código 200 em caso de sucesso")
     fun deleteService(@PathVariable id: Long): ResponseEntity<Void> {
         return if (servicesRepository.existsById(id)) {

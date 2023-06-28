@@ -11,11 +11,17 @@ class UsersBootstrap(
 ) : ApplicationListener<ContextRefreshedEvent> {
     override fun onApplicationEvent(event: ContextRefreshedEvent) {
         val adminRole = Role(name = "ADMIN")
+        val registrationRole = Role(name = "CADASTRO")
+        val salesRole = Role(name = "VENDAS")
+        val customerRole = Role(name = "CLIENTE")
+
         if (rolesRepository.count() == 0L) {
             rolesRepository.save(adminRole)
-            rolesRepository.save(Role(name = "USER"))
+            rolesRepository.save(registrationRole)
+            rolesRepository.save(salesRole)
+            rolesRepository.save(customerRole)
         }
-        if (userRepository.count() == 0L) {
+        if (userRepository.count() < 4L) {
             val admin = User(
                 email = "admin@authserver.com",
                 password = "admin",
@@ -23,6 +29,30 @@ class UsersBootstrap(
             )
             admin.roles.add(adminRole)
             userRepository.save(admin)
+
+            val registration = User(
+                    email = "cadastro@authserver.com",
+                    password = "cadastro",
+                    name = "Usuário de Cadastro",
+            )
+            registration.roles.add(registrationRole)
+            userRepository.save(registration)
+
+            val sales = User(
+                    email = "vendas@authserver.com",
+                    password = "vendas",
+                    name = "Usuário de Vendas",
+            )
+            sales.roles.add(salesRole)
+            userRepository.save(sales)
+
+            val customer = User(
+                    email = "cliente@authserver.com",
+                    password = "cliente",
+                    name = "Cliente de Exemplo",
+            )
+            customer.roles.add(customerRole)
+            userRepository.save(customer)
         }
     }
 }
