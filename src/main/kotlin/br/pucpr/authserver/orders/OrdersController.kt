@@ -4,6 +4,7 @@ import br.pucpr.authserver.orders.requests.OrdersRequest
 import br.pucpr.authserver.services.Service
 import br.pucpr.authserver.services.ServicesRepository
 import br.pucpr.authserver.users.UsersRepository
+import br.pucpr.authserver.utils.Logger
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -72,6 +73,7 @@ class OrdersController(
             services.add(service.get())
             val order = Order(user = user.get(), services = services, orderDate = LocalDateTime.now())
             val createdOrder = orderRepository.save(order)
+            Logger.orders.info("Pedido criado. id={} user={}", createdOrder.id, user.get().name)
             ResponseEntity.status(HttpStatus.CREATED).body(createdOrder.toString())
         } else {
             if (!user.isPresent) ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado") else
@@ -93,6 +95,7 @@ class OrdersController(
         val user = usersRepository.findById(newUserId)
         return if (order.isPresent && user.isPresent) {
             val updated = orderRepository.save(order.get().copy(user = user.get()))
+            Logger.orders.info("Pedido atualizado. id={} user={}", updated.id, user.get().name)
             ResponseEntity.ok(updated.toString())
         } else {
             if (!user.isPresent) ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado") else
@@ -108,6 +111,7 @@ class OrdersController(
     fun deleteOrder(@PathVariable id: Long): ResponseEntity<Unit> {
         return if (orderRepository.existsById(id)) {
             orderRepository.deleteById(id)
+            Logger.orders.warn("Pedido deletado. id={}", id)
             ResponseEntity.ok().build()
         } else {
             ResponseEntity.notFound().build()

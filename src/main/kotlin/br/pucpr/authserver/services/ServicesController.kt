@@ -1,5 +1,6 @@
 package br.pucpr.authserver.services
 
+import br.pucpr.authserver.utils.Logger
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -37,6 +38,7 @@ class ServicesController(private val servicesRepository: ServicesRepository) {
     @Operation(summary = "Cria um serviço", description = "Retorna o serviço criado")
     fun createService(@Valid @RequestBody service: Service): ResponseEntity<Service> {
         val createdService = servicesRepository.save(service)
+        Logger.services.info("Serviço criado. id={} name={}", createdService.id, createdService.name)
         return ResponseEntity.status(HttpStatus.CREATED).body(createdService)
     }
 
@@ -51,6 +53,7 @@ class ServicesController(private val servicesRepository: ServicesRepository) {
         val service = servicesRepository.findById(id)
         return if (service.isPresent) {
             val updated = servicesRepository.save(updatedService.copy(id = id))
+            Logger.services.info("Serviço atualizado. id={} name={}", updated.id, updated.name)
             ResponseEntity.ok(updated)
         } else {
             ResponseEntity.notFound().build()
@@ -64,6 +67,7 @@ class ServicesController(private val servicesRepository: ServicesRepository) {
     fun deleteService(@PathVariable id: Long): ResponseEntity<Void> {
         return if (servicesRepository.existsById(id)) {
             servicesRepository.deleteById(id)
+            Logger.services.warn("Serviço deletado. id={} ", id)
             ResponseEntity.ok().build()
         } else {
             ResponseEntity.notFound().build()
