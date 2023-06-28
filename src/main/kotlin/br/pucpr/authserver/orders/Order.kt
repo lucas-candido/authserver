@@ -2,16 +2,18 @@ package br.pucpr.authserver.orders
 
 import br.pucpr.authserver.services.Service
 import br.pucpr.authserver.users.User
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Entity
 @Table(name = "TblOrder")
-class Order(
+data class Order(
 
     @Id @GeneratedValue
     var id: Long? = null,
 
+    @JsonIgnore
     @ManyToMany
     @JoinTable(
         name = "OrderProduct",
@@ -25,4 +27,8 @@ class Order(
     val user: User,
 
     val orderDate: LocalDateTime = LocalDateTime.now()
-)
+) {
+    override fun toString(): String = "Pedido de id $id criado/atualizado em $orderDate para o usuário ${user.name}"
+}
+
+

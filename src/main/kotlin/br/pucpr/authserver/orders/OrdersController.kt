@@ -1,8 +1,11 @@
 package br.pucpr.authserver.orders
 
+import br.pucpr.authserver.orders.requests.OrdersRequest
 import br.pucpr.authserver.services.Service
 import br.pucpr.authserver.services.ServicesRepository
+import br.pucpr.authserver.users.UsersRepository
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -10,20 +13,39 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/orders")
 @Tag(name = "APIs de Pedidos")
 class OrdersController(
     private val orderRepository: OrdersRepository,
-    private val servicesRepository: ServicesRepository
+    private val servicesRepository: ServicesRepository,
+    private val usersRepository: UsersRepository
 ) {
 
     @GetMapping("/")
     @SecurityRequirement(name = "AuthServer")
-    @Operation(summary = "Lista todos os pedidos", description = "Retorna uma lista com todos os pedidos existentes")
-    fun getAllOrders(): List<Order> {
-        return orderRepository.findAll()
+    @Operation(
+            summary = "Lista todos os pedidos",
+            description = "Retorna uma lista com todos os pedidos existentes",
+            parameters = [
+                Parameter(
+                        name = "userId",
+                        description = "Usuário a ser usado no filtro (opcional)"
+                ),
+                Parameter(
+                        name = "order",
+                        description = "Tipo de ordenação pelo ID do pedido (opcional). Padrão ASC ou informe a string DESC"
+                )
+            ]
+    )
+    fun getAllOrders(@RequestParam("userId") userId: Long?, @RequestParam("order") order: String?): List<Order> {
+
+        var orders = orderRepository.findAll()
+        orders = if (order.equals("DESC")) orders.sortedByDescending { it.id } else orders.sortedBy { it.id }
+
+        return if (userId != null) orders.filter {  it.user.id == userId } else orders
     }
 
     @GetMapping("/{id}")
@@ -42,9 +64,21 @@ class OrdersController(
     @SecurityRequirement(name = "AuthServer")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_VENDAS')")
     @Operation(summary = "Cria um pedido", description = "Retorna o pedido criado")
-    fun createOrder(@Valid @RequestBody order: Order): ResponseEntity<Order> {
-        val createdOrder = orderRepository.save(order)
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder)
+    fun createOrder(@Valid @RequestBody req: OrdersRequest): ResponseEntity<String> {
+        val user = usersRepository.findById(req.userId!!)
+        val service = servicesRepository.findById(req.serviceId!!)
+        val services = mutableSetOf<Service>()
+
+        return if (user.isPresent && service.isPresent) {
+            services.add(service.get())
+            val order = Order(user = user.get(), services = services, orderDate = LocalDateTime.now())
+            val createdOrder = orderRepository.save(order)
+            ResponseEntity.status(HttpStatus.CREATED).body(createdOrder.toString())
+        } else {
+            if (!user.isPresent) ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado") else
+                if (!service.isPresent) ResponseEntity.status(HttpStatus.NOT_FOUND).body("Serviço não encontrado") else
+                    ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falha ao processar o corpo da requisição")
+        }
     }
 
     @PutMapping("/{id}")
@@ -54,14 +88,17 @@ class OrdersController(
 
     fun updateOrder(
         @PathVariable id: Long,
-        @Valid @RequestBody updatedOrder: Order
-    ): ResponseEntity<Order> {
+        @Valid @RequestBody newUserId: Long
+    ): ResponseEntity<String> {
         val order = orderRepository.findById(id)
-        return if (order.isPresent) {
-            val updated = orderRepository.save(updatedOrder)
-            ResponseEntity.ok(updated)
+        val user = usersRepository.findById(newUserId)
+        return if (order.isPresent && user.isPresent) {
+            val updated = orderRepository.save(order.get().copy(user = user.get()))
+            ResponseEntity.ok(updated.toString())
         } else {
-            ResponseEntity.notFound().build()
+            if (!user.isPresent) ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado") else
+                if (!order.isPresent) ResponseEntity.status(HttpStatus.NOT_FOUND).body("Pedido não encontrado") else
+                    ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falha ao processar o corpo da requisição")
         }
     }
 

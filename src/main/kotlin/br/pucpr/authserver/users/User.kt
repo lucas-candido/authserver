@@ -1,6 +1,7 @@
 package br.pucpr.authserver.users
 
 import br.pucpr.authserver.users.responses.UserResponse
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import jakarta.validation.constraints.Email
 
@@ -14,12 +15,14 @@ class User(
     @Column(unique = true, nullable = false)
     var email: String,
 
+    @JsonIgnore
     @Column(length = 50)
     var password: String,
 
     @Column(nullable = false)
     var name: String = "",
 
+    @JsonIgnore
     @ManyToMany
     @JoinTable(
         name = "UserRole",

@@ -24,8 +24,7 @@ class UsersController(val service: UsersService) {
         parameters = [
             Parameter(
                 name = "role",
-                description = "Papel a ser usado no filtro (opcional)",
-                example = "USER"
+                description = "Papel a ser usado no filtro (opcional)"
             )]
     )
     @GetMapping

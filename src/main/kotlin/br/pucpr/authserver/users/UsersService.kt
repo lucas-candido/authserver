@@ -22,8 +22,8 @@ class UsersService(
             password = req.password!!,
             name = req.name!!
         )
-        val userRole = rolesRepository.findByName("USER")
-            ?: throw IllegalStateException("Role 'USER' not found!")
+        val userRole = rolesRepository.findByName("CLIENTE")
+            ?: throw IllegalStateException("Role 'CLIENTE' not found!")
 
         user.roles.add(userRole)
         return repository.save(user)
