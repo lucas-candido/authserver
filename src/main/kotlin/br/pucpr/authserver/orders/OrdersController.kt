@@ -78,7 +78,7 @@ class OrdersController(
         } else {
             if (!user.isPresent) ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado") else
                 if (!service.isPresent) ResponseEntity.status(HttpStatus.NOT_FOUND).body("Serviço não encontrado") else
-                    ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falha ao processar o corpo da requisição")
+                    throw IllegalStateException("Falha ao processar o corpo da requisição")
         }
     }
 
@@ -100,7 +100,7 @@ class OrdersController(
         } else {
             if (!user.isPresent) ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado") else
                 if (!order.isPresent) ResponseEntity.status(HttpStatus.NOT_FOUND).body("Pedido não encontrado") else
-                    ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falha ao processar o corpo da requisição")
+                    throw IllegalStateException("Falha ao processar o corpo da requisição")
         }
     }
 

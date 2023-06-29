@@ -15,7 +15,7 @@ class DummyDataBootstrap(
         val oleo = Service(name = "Troca de Óleo", price = 250.00)
         val alinhamento = Service(name = "Alinhamento e Balanceamento", price = 250.00)
         val funilaria = Service(name = "Funilaria", price = 800.00)
-        val pintura = Service(name = "Funilaria", price = 3000.00)
+        val pintura = Service(name = "Pintura", price = 3000.00)
 
         if (servicesRepository.count() < 4L) {
             servicesRepository.save(oleo)
